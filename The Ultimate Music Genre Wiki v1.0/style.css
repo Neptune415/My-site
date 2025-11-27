@@ -313,12 +313,12 @@
 }
 /* @ckeditor/ckeditor5-list/theme/list.css */
 .ck-content ul ul ul {
-    list-style-type: square;
+    list-style-type: lower-latin;
     padding-left: 15px;
 }
 /* @ckeditor/ckeditor5-list/theme/list.css */
 .ck-content ul ul ul ul {
-    list-style-type: square;
+    list-style-type: decimal;
     padding-left: 15px;
 }
 /* @ckeditor/ckeditor5-list/theme/list.css */
