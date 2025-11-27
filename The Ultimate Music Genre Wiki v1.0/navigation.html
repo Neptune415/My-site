@@ -3,6 +3,33 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 5px;
+            font-size: 12px;
+            color: #333;
+            margin-right: 5px;
+            user-select: none;
+        }
+        .toggle-btn:hover {
+            color: #0066cc;
+        }
+        .toggle-btn.collapsed::before {
+            content: "▶ ";
+        }
+        .toggle-btn.expanded::before {
+            content: "▼ ";
+        }
+        .collapsible-ul {
+            display: block;
+        }
+        .collapsible-ul.collapsed {
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="ck-content">
@@ -6054,6 +6081,40 @@
             </ul>
         </li>
     </ul>
+    
+    <script>
+        // 为所有包含子菜单的列表项添加折叠/展开功能
+        document.querySelectorAll('li').forEach(function(li) {
+            const childUl = li.querySelector(':scope > ul');
+            if (childUl) {
+                // 创建切换按钮，初始状态为收拢(collapsed)
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'toggle-btn collapsed';
+                toggleBtn.type = 'button';
+                toggleBtn.setAttribute('aria-label', '折叠/展开');
+                
+                // 给子菜单添加 collapsible-ul 类，并初始状态为收拢
+                childUl.classList.add('collapsible-ul');
+                childUl.classList.add('collapsed');
+                
+                // 在链接前插入按钮
+                const link = li.querySelector(':scope > a');
+                if (link) {
+                    link.parentNode.insertBefore(toggleBtn, link);
+                } else {
+                    li.insertBefore(toggleBtn, childUl);
+                }
+                
+                // 添加点击事件
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    childUl.classList.toggle('collapsed');
+                    toggleBtn.classList.toggle('collapsed');
+                    toggleBtn.classList.toggle('expanded');
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
