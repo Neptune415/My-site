@@ -193,8 +193,3 @@ footer {
   background: #8f5ee0;
 }
 
-li {
-  width: 400px;      /* 设置你想要的宽度 */
-  box-sizing: border-box;  /* 保证 padding 不影响总宽度 */
-}
-
