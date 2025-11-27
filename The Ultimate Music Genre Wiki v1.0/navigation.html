@@ -6054,9 +6054,8 @@
             </ul>
         </li>
     </ul>
-    <style>
-  /* 折叠功能核心CSS（自动生效，无需手动改） */
-  /* 图标样式 */
+<style>
+  /* 折叠功能核心CSS（无兼容问题） */
   .toggle-icon {
     display: inline-block;
     width: 16px;
@@ -6067,15 +6066,12 @@
     text-align: center;
     vertical-align: middle;
   }
-  /* 无子女目录隐藏图标占位 */
   .nav-item:not(.has-children) .toggle-icon {
     visibility: hidden;
   }
-  /* 展开时图标旋转 */
   .nav-item.expanded .toggle-icon {
     transform: rotate(90deg);
   }
-  /* 子目录折叠/展开样式 */
   .nav-children {
     list-style: none;
     padding-left: 24px;
@@ -6085,93 +6081,114 @@
     transition: max-height 0.3s ease;
   }
   .nav-item.expanded .nav-children {
-    max-height: 2000px; /* 足够容纳多级子目录 */
+    max-height: 2000px;
   }
-  /* 父项点击区域样式（避免链接跳转冲突） */
   .nav-link {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     width: 100%;
+    text-decoration: none;
+    color: #333;
+  }
+  .nav-link:hover {
+    color: #007bff;
+  }
+  /* 适配你的目录原有样式（如果需要调整间距，改这里） */
+  .nav-tree {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .nav-item {
+    padding: 4px 0;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // -------------------------- 关键配置：修改为你原有目录的外层选择器 --------------------------
+  const ORIGINAL_NAV_SELECTOR = '.foldable-list'; // 🔴 必须改成你的目录选择器！比如 #catalog 或 .sidebar-menu
+  // -------------------------------------------------------------------------------------------
+
+  const originalNav = document.querySelector(ORIGINAL_NAV_SELECTOR);
+  if (!originalNav) {
+    console.error('❌ 未找到目录！请检查选择器是否正确');
+    return;
   }
 
-</style>
-<script>
-  // 等待页面加载完成
-  document.addEventListener('DOMContentLoaded', function() {
-    // -------------------------- 关键配置：修改这里为你原有目录的外层选择器 --------------------------
-    // 比如你的目录外层是 <ul class="sidebar-nav">，就改成 '.sidebar-nav'
-    // 比如是 <ul id="menu">，就改成 '#menu'
-    const ORIGINAL_NAV_SELECTOR = '.foldable-list'; // 🔴 必须修改为你自己的目录选择器！
-    // -------------------------------------------------------------------------------------------
+  // 给外层目录添加统一类名（方便样式控制）
+  originalNav.classList.add('nav-tree');
 
-    // 获取你原有的目录元素
-    const originalNav = document.querySelector(ORIGINAL_NAV_SELECTOR);
-    if (!originalNav) {
-      console.error('未找到目录！请检查 ORIGINAL_NAV_SELECTOR 配置是否正确');
-      return;
-    }
+  // 递归处理所有目录项（完全不用 querySelectorAll('> li')，彻底解决兼容问题）
+  function processNavItems(parentElement) {
+    // 1. 只取当前元素的直接子节点（不含后代），再筛选出 <li>
+    const allDirectChildren = parentElement.childNodes;
+    const liItems = [];
+    allDirectChildren.forEach(child => {
+      // 只保留标签类型为 <li> 的直接子元素
+      if (child.nodeType === 1 && child.tagName === 'LI') {
+        liItems.push(child);
+      }
+    });
 
-    // 递归处理所有目录项（支持无限层级）
-    function processNavItems(parentElement) {
-    // 修复：先获取所有子节点，再筛选出直接子级的 <li>（兼容所有浏览器）
-    const items = Array.from(parentElement.children).filter(child => child.tagName === 'LI');
+    // 2. 处理每个 <li> 项
+    liItems.forEach(li => {
+      li.classList.add('nav-item');
+      let childUl = null;
+      let linkElement = null;
 
-    items
-    .forEach(item => {
-        item
-    .classList.add('nav-item');
-
-        // 修复：获取当前项的直接子级 <ul>（不用 querySelector，避免语法问题）
-        const childUl = Array.from(item.children).find(child => child.tagName === 'UL');
-        const linkElement = item.querySelector('> a'); // 这行不变
-
-        if (childUl) {
-        item
-    .classList.add('has-children');
-        childUl
-    .classList.add('nav-children');
-
-        if (linkElement) {
-            linkElement
-    .classList.add('nav-link');
-            linkElement
-    .insertAdjacentHTML('afterbegin', '<span class="toggle-icon">▶</span>');
-            linkElement
-    .addEventListener('click', function(e) {
-            e
-    .preventDefault();
-            item
-    .classList.toggle('expanded');
-            });
-        }
-
-          // 递归处理子目录（支持多级嵌套）
-          processNavItems(childUl);
-        } else {
-          // 没有子目录（纯子项）
-          if (linkElement) {
-            // 给纯子项添加图标占位（保持对齐）
-            linkElement
-.classList.add('nav-link');
-            linkElement
-.insertAdjacentHTML('afterbegin', '<span class="toggle-icon">▶</span>');
-            // 纯子项点击正常跳转，不添加折叠事件
+      // 3. 遍历 <li> 的直接子节点，找到 <ul>（子目录）和 <a>（链接）
+      li.childNodes.forEach(child => {
+        if (child.nodeType === 1) { // 只处理元素节点
+          if (child.tagName === 'UL') {
+            childUl = child; // 找到直接子级的 <ul>（子目录）
+          } else if (child.tagName === 'A') {
+            linkElement = child; // 找到直接子级的 <a>（链接）
           }
         }
       });
-    }
 
-    // 开始批量处理目录
-    processNavItems(originalNav);
+      // 4. 如果有子目录（<ul>），说明是父项
+      if (childUl) {
+        li.classList.add('has-children');
+        childUl.classList.add('nav-children');
 
-    // 可选：默认展开第一个父目录（不需要可删除）
-    const firstParent = document.querySelector('.nav-item.has-children');
-    if (firstParent) {
-      firstParent
-.classList.add('expanded');
-    }
-  });
+        if (linkElement) {
+          linkElement.classList.add('nav-link');
+          // 添加折叠图标
+          linkElement.insertAdjacentHTML('afterbegin', '<span class="toggle-icon">▶</span>');
+          // 绑定折叠/展开事件
+          linkElement.addEventListener('click', function(e) {
+            e.preventDefault(); // 阻止跳转，只控制折叠
+            li.classList.toggle('expanded');
+          });
+        }
+
+        // 递归处理子目录
+        processNavItems(childUl);
+      } else {
+        // 5. 没有子目录，纯子项
+        if (linkElement) {
+          linkElement.classList.add('nav-link');
+          // 添加图标占位（保持对齐）
+          linkElement.insertAdjacentHTML('afterbegin', '<span class="toggle-icon">▶</span>');
+        }
+      }
+    });
+  }
+
+  // 开始处理目录
+  processNavItems(originalNav);
+
+  // 可选：默认展开第一个父目录
+  const firstParent = document.querySelector('.nav-item.has-children');
+  if (firstParent) {
+    firstParent.classList.add('expanded');
+  }
+
+  console.log('✅ 折叠功能初始化完成！');
+});
 </script>
 </body>
 
