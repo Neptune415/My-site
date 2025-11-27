@@ -284,7 +284,7 @@
 .ck-content ol,
 .ck-content ul {
     margin: 0.5em 0; /* 与其他内容区分 */
-    padding-left: 1.5em; /* 避免列表项紧贴左侧，提升可读性 */
+    padding-left: 0; /* 避免列表项紧贴左侧，提升可读性 */
 }
 /* @ckeditor/ckeditor5-list/theme/list.css */
 .ck-content ol {
